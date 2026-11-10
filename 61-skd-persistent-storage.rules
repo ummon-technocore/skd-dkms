@@ -1,0 +1,11 @@
+# skd (sTec S1120, out-of-tree skd-dkms) is not in the KERNEL whitelist of
+# 60-persistent-storage.rules, so no /dev/disk/by-uuid or by-label links are
+# created and fstab entries by UUID time out at boot. Probe it here instead.
+ACTION=="remove", GOTO="skd_end"
+SUBSYSTEM!="block", GOTO="skd_end"
+KERNEL!="skd*", GOTO="skd_end"
+IMPORT{builtin}="blkid"
+ENV{ID_FS_UUID_ENC}=="?*", SYMLINK+="disk/by-uuid/$env{ID_FS_UUID_ENC}"
+ENV{ID_FS_LABEL_ENC}=="?*", SYMLINK+="disk/by-label/$env{ID_FS_LABEL_ENC}"
+ENV{ID_PART_ENTRY_UUID}=="?*", SYMLINK+="disk/by-partuuid/$env{ID_PART_ENTRY_UUID}"
+LABEL="skd_end"

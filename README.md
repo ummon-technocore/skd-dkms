@@ -29,10 +29,19 @@ sudo cp skd_main.c skd_s1120.h Makefile dkms.conf /usr/src/skd-5.11-oot.1/
 sudo dkms add skd/5.11-oot.1
 sudo dkms install skd/5.11-oot.1
 sudo modprobe skd
+sudo cp 61-skd-persistent-storage.rules /etc/udev/rules.d/
+sudo udevadm control --reload
+sudo udevadm trigger --action=change --sysname-match="skd*"
 ```
 
 When it works, `dmesg` shows `STEC s1120 ONLINE` and `/dev/skd0` appears.
 DKMS rebuilds the module automatically for each new kernel.
+
+The udev rule is needed to mount the card by UUID or label (`/etc/fstab`):
+systemd's own persistent storage rules only know in-tree disk names (`sd*`,
+`nvme*`, `vd*`...), so without it `/dev/disk/by-uuid/` has no link for `skd*`
+partitions, and a `UUID=` fstab entry times out at boot (silently, with
+`nofail`).
 
 Versions follow `<last mainline kernel>-oot.<n>`: `5.11-oot.1` is the first
 out-of-tree release of the driver as it shipped in Linux 5.11.
